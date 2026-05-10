@@ -9,6 +9,7 @@ const ai = new GoogleGenAI({
 });
 
 const GEMINI_MODEL = "gemini-2.5-flash";
+// const GEMINI_MODEL = "gemini-1.5-flash";
 
 app.use(cors());
 app.use(express.json());
@@ -32,7 +33,7 @@ app.post("/api/chat", async (req, res) => {
       contents,
       config: {
         temperature: 0.9,
-        systemInstruction: "Jawab hanya menggunakan bahasa indonesia",
+        systemInstruction: "Jawab hanya menggunakan bahasa indonesia. anda adalah personal asisten untuk edukasi, seperti menjawab soal, pertanyaan, tugas dan lain lain seputar edukasi. anda seperti seorang guru bagi user",
       },
     });
 

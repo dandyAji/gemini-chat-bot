@@ -1,20 +1,205 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Gemini AI Chatbot</title>
-  <link rel="stylesheet" href="style.css"/>
-</head>
-<body>
-  <div class="container">
-    <h1>Gemini AI Chatbot</h1>
-    <div id="chat-box" class="chat-box"></div>
-    <form id="chat-form">
-      <input type="text" id="user-input" placeholder="Type your message..." autocomplete="off" required />
-      <button type="submit">Send</button>
-    </form>
-  </div>
-  <script src="script.js"></script>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gemini AI Chatbot</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body class="flex" style="height: 100vh; width: 100vw; overflow: hidden">
+    <!-- Mobile overlay -->
+    <div id="overlay" class="hidden fixed inset-0 z-40" style="background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(4px)" onclick="closeSidebar()"></div>
+
+    <!-- ═══════════════════════════ SIDEBAR ═══════════════════════════ -->
+    <aside id="sidebar">
+      <!-- Logo -->
+      <div class="flex items-center gap-3 px-5 py-5" style="border-bottom: 1px solid rgba(255, 255, 255, 0.05)">
+        <div class="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 glow-blue" style="background: linear-gradient(135deg, #6366f1, #7c3aed)">
+          <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+          </svg>
+        </div>
+        <div>
+          <p class="text-white font-semibold text-sm leading-none">Gemini AI</p>
+          <p class="text-xs mt-0.5" style="color: #475569">v2.0 Pro</p>
+        </div>
+      </div>
+
+      <!-- New Chat -->
+      <div class="px-4 pt-4">
+        <button id="new-chat-btn" onclick="newChat()" class="w-full flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+          </svg>
+          Chat Baru
+        </button>
+      </div>
+
+      <!-- History -->
+      <div class="flex-1 overflow-y-auto px-3 pt-5 pb-4">
+        <p class="text-xs font-medium px-2 mb-2 uppercase tracking-wider" style="color: #334155">Riwayat</p>
+        <div id="history-list" class="flex flex-col gap-0.5">
+          <div class="history-item active">Sesi aktif</div>
+        </div>
+      </div>
+
+      <!-- User -->
+      <div class="px-4 py-4" style="border-top: 1px solid rgba(255, 255, 255, 0.05)">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-semibold flex-shrink-0" style="background: linear-gradient(135deg, #7c3aed, #6366f1)">U</div>
+          <div class="flex-1 min-w-0">
+            <p class="text-sm font-medium truncate" style="color: #cbd5e1">User</p>
+            <p class="text-xs" style="color: #475569">Free Plan</p>
+          </div>
+          <svg class="w-4 h-4" style="color: #475569" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+            />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ═══════════════════════════ MAIN ═══════════════════════════ -->
+    <div id="main-area">
+      <!-- Ambient -->
+      <div class="ambient" style="width: 500px; height: 500px; background: rgba(99, 102, 241, 0.07); top: -150px; right: -100px"></div>
+      <div class="ambient" style="width: 300px; height: 300px; background: rgba(124, 58, 237, 0.05); bottom: 80px; left: 80px"></div>
+
+      <!-- Topbar -->
+      <header class="relative z-10 flex items-center justify-between px-6 py-4 flex-shrink-0" style="border-bottom: 1px solid rgba(255, 255, 255, 0.05); background: rgba(0, 0, 0, 0.25); backdrop-filter: blur(12px)">
+        <div class="flex items-center gap-3">
+          <button
+            onclick="openSidebar()"
+            class="md:hidden w-9 h-9 rounded-lg flex items-center justify-center transition-all"
+            style="color: #64748b"
+            onmouseover="
+              this.style.color = '#fff';
+              this.style.background = 'rgba(255,255,255,0.05)';
+            "
+            onmouseout="
+              this.style.color = '#64748b';
+              this.style.background = 'transparent';
+            "
+          >
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+          <div>
+            <h1 class="text-white font-semibold" style="font-size: 15px">Gemini AI Assistant</h1>
+            <div class="flex items-center gap-1.5 mt-0.5">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400" style="animation: pulse 2s infinite"></span>
+              <span class="text-xs" style="color: #34d399">Online</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <span class="badge" style="background: rgba(99, 102, 241, 0.15); color: #a5b4fc; border: 1px solid rgba(99, 102, 241, 0.2)">Gemini Pro</span>
+          <button
+            onclick="clearChat()"
+            title="Hapus Chat"
+            class="w-9 h-9 rounded-lg flex items-center justify-center transition-all"
+            style="color: #475569"
+            onmouseover="
+              this.style.color = '#f87171';
+              this.style.background = 'rgba(248,113,113,0.08)';
+            "
+            onmouseout="
+              this.style.color = '#475569';
+              this.style.background = 'transparent';
+            "
+          >
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+          </button>
+        </div>
+      </header>
+
+      <!-- CHAT BOX -->
+      <div id="chat-box">
+        <!-- Welcome -->
+        <div id="welcome-screen">
+          <div class="w-20 h-20 rounded-2xl flex items-center justify-center mb-6 glow-blue" style="background: linear-gradient(135deg, #6366f1, #7c3aed)">
+            <svg class="w-10 h-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+          </div>
+          <h2 class="text-white font-semibold mb-3" style="font-size: 28px">Halo, saya Gemini ✨</h2>
+          <p style="color: #475569; font-size: 15px; max-width: 380px; line-height: 1.7">Asisten AI yang siap membantu menjawab pertanyaan, membuat konten, dan banyak lagi.</p>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-10 w-full" style="max-width: 540px">
+            <button class="quick-btn" onclick="quickPrompt('Jelaskan cara kerja AI secara sederhana')">
+              <span class="block mb-1.5 text-xs font-medium" style="color: #818cf8">💡 Edukasi</span>
+              Jelaskan cara kerja AI secara sederhana
+            </button>
+            <button class="quick-btn" onclick="quickPrompt('Buatkan rencana belajar programming 30 hari')">
+              <span class="block mb-1.5 text-xs font-medium" style="color: #c084fc">📚 Rencana</span>
+              Buatkan rencana belajar programming 30 hari
+            </button>
+            <button class="quick-btn" onclick="quickPrompt('Bantu saya review dan perbaiki kode Python ini')">
+              <span class="block mb-1.5 text-xs font-medium" style="color: #34d399">💻 Coding</span>
+              Bantu review dan perbaiki kode Python saya
+            </button>
+            <button class="quick-btn" onclick="quickPrompt('Tuliskan email profesional untuk klien baru')">
+              <span class="block mb-1.5 text-xs font-medium" style="color: #fbbf24">✉️ Menulis</span>
+              Tuliskan email profesional untuk klien baru
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- INPUT AREA -->
+      <div class="relative z-10 flex-shrink-0 px-4 py-5" style="border-top: 1px solid rgba(255, 255, 255, 0.05); background: rgba(0, 0, 0, 0.2); backdrop-filter: blur(12px)">
+        <form id="chat-form" class="flex items-center gap-3 mx-auto" style="max-width: 780px">
+          <div class="flex-1 relative">
+            <input type="text" id="user-input" placeholder="Ketik pesan Anda kepada Gemini..." autocomplete="off" required style="width: 100%; background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.09); border-radius: 14px; padding: 14px 20px; color: #e2e8f0; font-size: 14px; font-family: &quot;Sora&quot;, sans-serif; transition: all 0.2s" />
+          </div>
+          <button type="submit" id="send-btn" class="flex items-center justify-center flex-shrink-0" style="width: 48px; height: 48px; border-radius: 14px">
+            <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+            </svg>
+          </button>
+        </form>
+        <p class="text-center mt-3" style="color: #334155; font-size: 11px; font-family: &quot;JetBrains Mono&quot;, monospace">Gemini dapat membuat kesalahan. Harap verifikasi informasi penting.</p>
+      </div>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+      function openSidebar() {
+        document.getElementById("sidebar").classList.add("open");
+        document.getElementById("overlay").classList.remove("hidden");
+      }
+      function closeSidebar() {
+        document.getElementById("sidebar").classList.remove("open");
+        document.getElementById("overlay").classList.add("hidden");
+      }
+      function quickPrompt(text) {
+        document.getElementById("user-input").value = text;
+        document.getElementById("chat-form").dispatchEvent(new Event("submit"));
+      }
+      function clearChat() {
+        const chatBox = document.getElementById("chat-box");
+        const ws = document.getElementById("welcome-screen");
+        chatBox.innerHTML = "";
+        chatBox.appendChild(ws);
+        ws.style.display = "flex";
+        if (typeof conversationHistory !== "undefined") conversationHistory.length = 0;
+        if (typeof firstMessage !== "undefined") window.firstMessage = true;
+      }
+      function newChat() {
+        clearChat();
+        closeSidebar();
+      }
+    </script>
+  </body>
 </html>
